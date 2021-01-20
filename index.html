@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+</head>
+<body onload="Connect()">
+  <img src="">
+<script>
+    var Mqtt; 
+    var reconnectTimeout = 2000;
+    var Host = "postman.cloudmqtt.com";
+    var Port =  33009;
+    let urlObject;
+    const img = document.querySelector('img');
+  // Create a client instance
+  //client = new Paho.MQTT.Client("host", port,"client_id");
+  function Connect() {
+
+      Mqtt = new Paho.MQTT.Client(Host, Port, "web_" + parseInt(Math.random() * 100, 10));
+      
+      var options = {
+                  useSSL: true,
+                  userName: "mcgobign",
+                  password: "0rrN5iEMk3Ln",
+                  onSuccess:onConnect,
+                  onFailure:doFail
+                  }
+
+      Mqtt.onConnectionLost = onConnectionLost;
+      Mqtt.onMessageArrived = onMessageArrived;
+      Mqtt.connect(options);
+  }
+
+  // called when the client connects
+  function onConnect() {
+    // Once a connection has been made, make a subscription and send a message.
+    console.log("Connect Ok!");
+    //Mqtt.subscribe("ota/esp");
+    Mqtt.subscribe("/topic/qos0");
+    //message = new Paho.MQTT.Message("Hello CloudMQTT");
+    //message.destinationName = "ota/esp";
+    //Mqtt.send(message);
+  }
+
+  function doFail(e){
+    console.log(e);
+  }
+
+  // called when the client loses its connection
+  function onConnectionLost(responseObject) {
+    if (responseObject.errorCode !== 0) {
+      console.log("onConnectionLost:"+responseObject.errorMessage);
+    }
+  }
+
+  // called when a message arrives
+  function onMessageArrived(message) {
+    console.log("onMessageArrived:"+message.payloadString);
+    console.log("destinationName:"+message.destinationName);
+    if (message.destinationName == "/topic/qos0") {
+    const arrayBuffer = message.payloadString;
+    if(urlObject){
+       URL.revokeObjectURL(urlObject);
+      }
+    urlObject = URL.createObjectURL(new Blob([arrayBuffer]));
+    img.src = urlObject;
+  }
+}
+ 
+</script>
+</body>
+</html>
